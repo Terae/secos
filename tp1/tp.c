@@ -9,7 +9,7 @@ extern info_t *info;
 #define KERNEL_LAND 0
 #define USER_LAND 3
 
-#define SIZE_DGR 3
+#define SIZE_DGR 4
 seg_desc_t GDT[SIZE_DGR];
 
 /* Create a string of binary digits based on the input value.
@@ -56,19 +56,19 @@ static char *binrep (unsigned int val, char *buff, int sz) {
 void print_gdt(void) {
     gdt_reg_t dgtr;
     get_gdtr(dgtr);
-    debug("\n### GDT ###\n");
+    debug("### GDT ###\n");
 
     debug("Size of GDT:\t\t%d\n", dgtr.limit);
 
-    size_t n = (dgtr.limit + 1) / sizeof(seg_desc_t);
+    uint32_t n = (dgtr.limit + 1) / sizeof(seg_desc_t);
 
     char buff[5];
-    for (size_t i = 0; i < n; ++i) {
+    for (uint32_t i = 0; i < n; ++i) {
         seg_desc_t* seg_desc = &dgtr.desc[i];
-        uint32_t base = seg_desc->base_3 << 24 | seg_desc->base_2 << 16 | seg_desc->base_1;
-        uint32_t limit = seg_desc->limit_2 << 16 | seg_desc->limit_1;
+        uint32_t base = (seg_desc->base_3 << 24) | (seg_desc->base_2 << 16) | (seg_desc->base_1);
+        uint32_t limit = (seg_desc->limit_2 << 16) | (seg_desc->limit_1);
 
-        debug("@GDT[%d] = 0x%0X | limit=0x%x | base=0x%x | type=0b%s\n", i, seg_desc, limit, base, binrep(seg_desc->type, buff, 4));
+        debug("@GDT[%d] = 0x%lx | limit=0x%x | base=0x%x | type=0b%s\n", i, seg_desc, limit, base, binrep(seg_desc->type, buff, 4));
         debug("seg_desc->s:      \t0b%s\n", binrep(seg_desc->s,    buff, 1));
         debug("seg_desc->dpl:    \t0b%s\n", binrep(seg_desc->dpl,  buff, 2));
         debug("seg_desc->p:      \t0b%s\n", binrep(seg_desc->p,    buff, 1));
@@ -77,6 +77,7 @@ void print_gdt(void) {
         debug("seg_desc->d:      \t0b%s\n", binrep(seg_desc->d,    buff, 1));
         debug("seg_desc->g:      \t0b%s\n", binrep(seg_desc->g,    buff, 1));
     }
+    debug("---\n\n");
 }
 
 void gdt_set_seg_desc_with_params(seg_desc_t* seg, uint8_t type, uint8_t dpl, uint32_t base, uint32_t limit) {
@@ -93,6 +94,7 @@ void gdt_set_seg_desc_with_params(seg_desc_t* seg, uint8_t type, uint8_t dpl, ui
     seg->g = 1;
     seg->s = 1;
     seg->p = 1;
+    seg->l = 0;
 }
 
 void gdt_set_seg_desc(seg_desc_t* seg, uint8_t type, uint8_t dpl) {
@@ -100,7 +102,7 @@ void gdt_set_seg_desc(seg_desc_t* seg, uint8_t type, uint8_t dpl) {
 }
 
 void init_gdt() {
-    GDT[0].raw = 0;
+    GDT[0].raw = 0ULL;
 
     gdt_set_seg_desc(&GDT[1], SEG_DESC_CODE_XR, KERNEL_LAND);
     gdt_set_seg_desc(&GDT[2], SEG_DESC_DATA_RW, KERNEL_LAND);
@@ -120,11 +122,16 @@ void init_gdt() {
 }
 
 void memset_usage() {
-    gdt_set_seg_desc_with_params(&GDT[3], SEG_DESC_DATA_RW, KERNEL_LAND, 0x600000, 32);
+    // 0x600000: 6Mo
+    gdt_set_seg_desc_with_params(&GDT[3], SEG_DESC_DATA_RW, KERNEL_LAND, 0x600000, 31);
+
+    print_gdt();
 
     char src[64];
     char *dst = 0;
-    memset(src, 0xFF, 64);
+    memset(src, 0xFF, 32);
+
+    set_es(gdt_krn_seg_sel(3));
     _memcpy8(dst, src, 64);
 }
 
@@ -134,9 +141,9 @@ void tp()
     print_gdt();
     init_gdt();
 
-    debug("Last GDT\n");
+    debug("\nGDT updated\n");
     print_gdt();
 
     memset_usage();
-    printf("Everything is ok\n");
+    printf("End of TP1\n");
 }
