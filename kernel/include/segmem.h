@@ -89,6 +89,7 @@ typedef union segment_descriptor
       uint64_t    limit_1:16;    /* bits 00-15 of the segment limit */
       uint64_t    base_1:16;     /* bits 00-15 of the base address */
       uint64_t    base_2:8;      /* bits 16-23 of the base address */
+      // type: accessed | read_write | conforming | code
       uint64_t    type:4;        /* segment type */
       uint64_t    s:1;           /* descriptor type */
       uint64_t    dpl:2;         /* descriptor privilege level */

@@ -29,7 +29,7 @@ $(QEMU) $(QOPT)
 endef
 
 define debug
-echo "hit <ctl+a> <h> <enter>, for Qemu help"
+echo "[DEBUG] hit <ctl+a> <h> <enter>, for Qemu help"
 $(QEMU) $(QOPT) -s -S
 endef
 
