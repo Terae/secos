@@ -27,6 +27,4 @@ void tp() {
    debug("@: 0x%0X\tvalue: %d\n", ptr, *ptr);
    *ptr = 12;
    debug("@: 0x%0X\tvalue: %d\n", ptr, *ptr);
-
-
 }
