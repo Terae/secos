@@ -31,8 +31,7 @@ void perso_init_gdt(void);
 void perso_init_tss(void);
 
 // push ss, esp, eflags, cs, eip
-#define perso_ring0_to_ring3(_userland_)             \
-    force_interrupts_off();                    \
+#define perso_ring0_to_ring3(_userland_)       \
     asm volatile("push %0;"                    \
                  "push %%ebp;"                 \
                  "pushf;"                      \
@@ -41,4 +40,16 @@ void perso_init_tss(void);
                  "iret;"                       \
                  :: "i"(gdt_usr_seg_sel(4)),   \
                     "i"(gdt_usr_seg_sel(3)),   \
+                    "r"((_userland_)));
+
+#define perso_ring0_to_ring3_ustack(_userland_, _ustack_)       \
+    asm volatile("push %0;"                                     \
+                 "push %1;"                                     \
+                 "pushf;"                                       \
+                 "push %2;"                                     \
+                 "push %3;"                                     \
+                 "iret;"                                        \
+                 :: "i"(gdt_usr_seg_sel(4)),                    \
+                    "m"((_ustack_)),                            \
+                    "i"(gdt_usr_seg_sel(3)),                    \
                     "r"((_userland_)));
