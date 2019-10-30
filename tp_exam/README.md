@@ -44,6 +44,49 @@ Permettre un ordonnancement préemptif de 2 tâches (T1 et T2) en ring 3:
    . Adresses physiques utilisateurs
    . Adresses virtuelles utilisateurs
 
+```txt
+                                 RING\ /PGD[.]
+0x000000  +-------------------------+-v-+
+          |                         |K|P|
+          |          . . .          |E|T|
+          |                         |R|B|
+0x200000  +-------------------------+N|0|
+0x200000  | PGD Kernel              |E| |
+0x201000  |   PTB Kernel        (0) |L| |
+0x202000  |   PTB Task 1        (1) | | |
+0x203000  |   PTB Task 2        (2) | | |
+0x204000  |   PTB Shared memory (3) | | |
+          +-------------------------+ | |
+0x300000  | Kernel code             | | |
+          |                         | | |
+0x3A0000  | Kernel stack - END      | | |
+0x3B0000  | Kernel stack - task 1   | | |
+0x3C0000  | Kernel stack - task 2   | | |
+          |                         | | |
+          | Kernel stack            | | |
+0x400000  +-----------------------------+
+          | Task 1 - code (.user1)  |U|P|
+0x410000  |  phys addr counter      |S|T|
+0x420000  |  virt addr counter      |R|B|--+S C
+          |                         | |1|  |H O
+0x7FF000  | Task 1 - stack          | | |  |A U
+0x800000  +-----------------------------+  |R N -+
+          | Task 2 - code (.user2)  |U|P|  |E T  |
+0x810000  |  phys addr counter      |S|T|  |D E  |
+0x820000  |  virt addr counter      |R|B|--+  R  |
+          |                         | |2|        |
+0xBFF000  | Task 2 - stack          | | |        |
+0xC00000  +-----------------------------+        |
+0xC10000  | Syscall print (INT48)   |U|P|        |
+0xC20000  | Syscall count (INT80)   |S|T|        |
+          +-------------------------|R|B|        |
+0xE00000  | Shared memory           | |3|        |
+0xE10000  |   Counter               | | |<-------+
+          |                         | | |
+          |                         | | |
+0xFFF000  +-----------------------------+
+```
+
  - Vous pouvez modifier le linker script afin de situer votre code utilisateur à des adresses physiques pratiques (alignées sur une entrée de PDE par exemple (ex 4MB, 8MB). Ceci vous aidera à configurer le PGD des tâches ring 3. Pour cela il faut:
    + Créer une section ".user" dans linker.lds
    + Préfixer vos fonctions `user1()` et `user2()` avec l'attribut de section GCC `__attribute__((section(".user")))`.

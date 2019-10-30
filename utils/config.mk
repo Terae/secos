@@ -23,21 +23,30 @@ CFLG_REL   := -DRELEASE=\"secos-$(RELEASE)\"
 CFLAGS     := $(CFLG_WRN) $(CFLG_FP) $(CFLG_KRN) $(CFLG_32) $(CFLG_REL)
 
 # elementary kernel parts
-INCLUDE    := -I../kernel/include
-CORE       := ../kernel/core/
+INCLUDE    := -I../kernel/include -I../perso/include
+KRN_CORE   := ../kernel/core/
+PERSO_CORE := ../perso/core/
 
-core_obj   :=	entry.o \
-		start.o \
-		print.o \
+krn_core_obj :=	\
+		entry.o	\
+		start.o	\
+		print.o	\
 		uart.o	\
-		pic.o 	\
+		pic.o	\
 		intr.o	\
 		idt.o	\
-		excp.o	\
 		stack.o	\
-		utilities.o
+		excp.o
 
-objects    := $(addprefix $(CORE), $(core_obj))
+perso_core_obj :=		\
+		paging.o		\
+		segmentation.o	\
+		syscall.o
+
+krn_objects    := $(addprefix $(KRN_CORE),   $(krn_core_obj))
+perso_objects  := $(addprefix $(PERSO_CORE), $(perso_core_obj))
+objects := $(krn_objects) $(perso_objects)
+
 
 # Linking options
 LDFLG_32   := -melf_i386
