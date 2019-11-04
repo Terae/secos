@@ -22,16 +22,18 @@
 // PGD[1] - User 1 land //
 //////////////////////////
 #define USR1_BEGIN      0x400000
-#define USR1_CPT        0x401000
 #define USR1_COUNT      0x402000
+#define USR1_SEM_1      0x404000
+#define USR1_SEM_2      0x406000
 #define USR1_STACK      0x7FF000
 
 //////////////////////////
 // PGD[2] - User 2 land //
 //////////////////////////
 #define USR2_BEGIN      0x800000
-#define USR2_CPT        0x801000
 #define USR2_COUNT      0x802000
+#define USR2_SEM_1      0x804000
+#define USR2_SEM_2      0x806000
 #define USR2_STACK      0xBFF000
 
 ////////////////////////////
@@ -43,5 +45,7 @@
 #define SYS_COUNT       0xC20000
 
 #define SHARED_COUNTER  0xE10000
+#define SEM_RUN_1       0xE30000
+#define SEM_RUN_2       0xE50000
 
 #endif

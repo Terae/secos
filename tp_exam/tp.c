@@ -21,19 +21,32 @@ extern task_t* current_task;
 uint32_t* __attribute__((section(".user1_cpt"))) counter_user1 = (uint32_t*)USR1_COUNT;
 uint32_t* __attribute__((section(".user2_cpt"))) counter_user2 = (uint32_t*)USR2_COUNT;
 
+bool_t* __attribute__((section(".user1_sem1"))) user1_sem1 = (bool_t*)USR1_SEM_1;
+bool_t* __attribute__((section(".user1_sem2"))) user1_sem2 = (bool_t*)USR1_SEM_2;
+bool_t* __attribute__((section(".user2_sem1"))) user2_sem1 = (bool_t*)USR2_SEM_1;
+bool_t* __attribute__((section(".user2_sem2"))) user2_sem2 = (bool_t*)USR2_SEM_2;
+
 pde32_t* pgd;
 
 void __attribute__((section(".user1"))) user1() {
     while(1) {
-        debug_usr("Inside user1()");
-        (*counter_user1)++;
+        /* debug_usr("Inside user1()"); */
+        if(*user1_sem1) {
+            (*counter_user1)++;
+            *user1_sem1 = false;
+            *user1_sem2 = true;
+        }
     }
 }
 
 void __attribute__((section(".user2"))) user2() {
     while(1) {
         /* debug_usr("Inside user2()"); */
-        sys_counter(counter_user2);
+        if(*user2_sem2) {
+            sys_counter(counter_user2);
+            *user2_sem1 = true;
+            *user2_sem2 = false;
+        }
     }
 }
 
@@ -71,6 +84,11 @@ void init_paging(void) {
     pg_set_entry(&ptb_user1[pt32_idx(USR1_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
     pg_set_entry(&ptb_user2[pt32_idx(USR2_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
 
+    pg_set_entry(&ptb_user1[pt32_idx(USR1_SEM_1)], PG_USR | PG_RW | PG_P, page_nr(SEM_RUN_1));
+    pg_set_entry(&ptb_user1[pt32_idx(USR1_SEM_2)], PG_USR | PG_RW | PG_P, page_nr(SEM_RUN_2));
+    pg_set_entry(&ptb_user2[pt32_idx(USR2_SEM_1)], PG_USR | PG_RW | PG_P, page_nr(SEM_RUN_1));
+    pg_set_entry(&ptb_user2[pt32_idx(USR2_SEM_2)], PG_USR | PG_RW | PG_P, page_nr(SEM_RUN_2));
+
     // Activation, set_cr3() is done on `pgd_init()`
     activate_cr0();
 
@@ -101,6 +119,8 @@ void init_tasks(void) {
     current_task = &task_krn;
     current_task->ptb_idx = 1;
     *counter_user2 = 0;
+    *user2_sem1 = false;
+    *user2_sem2 = true;
     current_task->krn_stack = (uint32_t*) get_esp();
 }
 
