@@ -27,7 +27,7 @@ void intr_init()
 }
 
 void __regparm__(1) irq32_hdlr(int_ctx_t* ctx) {
-    asm volatile("int $48"::"S"("int32_hdlr called"));
+    /* asm volatile("int $48"::"S"("int32_hdlr called")); */
     jump_to_next_task(ctx);
 }
 
@@ -40,14 +40,17 @@ void __regparm__(1) int48_hdlr(int_ctx_t *ctx) {
 void __regparm__(1) int80_hdlr(int_ctx_t* ctx) {
     uint32_t* counter = (uint32_t*) (ctx->gpr.esi.raw);
     if (USR2_COUNT <= (uint32_t)counter && (uint32_t)counter + sizeof(*counter) <= USR2_COUNT + PG_4K_SIZE) {
-        debug("int80_hdlr - count = %d\n", *counter);
+        if(VERBOSE) {
+            debug("int80_hdlr - count = %d\n", *counter);
+        } else {
+            debug("\rint80_hdlr - count = %d", *counter);
+        }
     } else {
         panic("INT80_hdlr - bad address: counter=%p, *counter=%d\n", counter, *counter);
     }
 }
 
-void __regparm__(1) intr_hdlr(int_ctx_t *ctx)
-{
+void __regparm__(1) intr_hdlr(int_ctx_t *ctx) {
     uint8_t vector = ctx->nr.blow;
 
     switch(vector) {
@@ -92,9 +95,10 @@ void __regparm__(1) intr_hdlr(int_ctx_t *ctx)
                 ,ctx->gpr.esi.raw
                 ,ctx->gpr.edi.raw);
 
-        if(vector < NR_EXCP)
+        if(vector < NR_EXCP) {
             excp_hdlr(ctx);
-        else
+        } else {
             debug("ignore IRQ %d\n", vector);
+        }
     }
 }

@@ -4,6 +4,8 @@
 #include <intr.h>
 #include <pagemem.h>
 
+#define VERBOSE 0
+
 typedef union task_descriptor task_t;
 
 extern task_t* current_task;
@@ -21,7 +23,6 @@ typedef union task_descriptor
         uint32_t* krn_stack;
         int_ctx_t* usr_ctx;
         pde32_t* pgd;
-        uint16_t ptb_idx;
         task_t* next_task;
     };
 
@@ -31,7 +32,7 @@ typedef union task_descriptor
 
 void jump_to_next_task(int_ctx_t* ctx);
 
-void task_init(task_t* task, uint32_t eip, uint32_t* stack_kernel, uint32_t* stack_user, pde32_t* pgd, uint16_t ptb_idx, task_t* next);
+void task_init(task_t* task, uint32_t eip, uint32_t* stack_kernel, uint32_t* stack_user, pde32_t* pgd, task_t* next);
 
 void task_print(const task_t* task);
 #endif

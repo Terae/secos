@@ -39,10 +39,10 @@ SECTIONS
    . = 0x401000;
    .user1_cpt : { KEEP(*(.user1_cpt)) . = ALIGN(4); } : phsetup
 
-   . = 0x403000;
+   . = 0x402000;
    .user1_sem1 : { KEEP(*(.user1_sem1)) . = ALIGN(4); } : phsetup
 
-   . = 0x405000;
+   . = 0x403000;
    .user1_sem2 : { KEEP(*(.user1_sem2)) . = ALIGN(4); } : phsetup
 
    . = 0x800000;
@@ -51,9 +51,9 @@ SECTIONS
    . = 0x801000;
    .user2_cpt : { KEEP(*(.user2_cpt)) . = ALIGN(4); } : phsetup
 
-   . = 0x803000;
+   . = 0x802000;
    .user2_sem1 : { KEEP(*(.user2_sem1)) . = ALIGN(4); } : phsetup
 
-   . = 0x805000;
+   . = 0x803000;
    .user2_sem2 : { KEEP(*(.user2_sem2)) . = ALIGN(4); } : phsetup
 }

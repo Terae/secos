@@ -53,9 +53,14 @@ Permettre un ordonnancement préemptif de 2 tâches (T1 et T2) en ring 3:
 0x200000  +-------------------------+N|0|
 0x200000  | PGD Kernel              |E| |
 0x201000  |   PTB Kernel        (0) |L| |
-0x202000  |   PTB Task 1        (1) | | |
-0x203000  |   PTB Task 2        (2) | | |
-0x204000  |   PTB Shared memory (3) | | |
+0x210000  | PGD User 1              | | |
+0x211000  |   PTB Kernel        (0) | | |
+0x212000  |   PTB Task 1        (1) | | |
+0x214000  |   PTB Shared memory (3) | | |
+0x220000  | PGD User 2              | | |
+0x221000  |   PTB Kernel        (0) | | |
+0x223000  |   PTB Task 2        (2) | | |
+0x224000  |   PTB Shared memory (3) | | |
           +-------------------------+ | |
 0x300000  | Kernel code             | | |
           |                         | | |
