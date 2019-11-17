@@ -31,6 +31,7 @@ pde32_t* pgd_user1;
 pde32_t* pgd_user2;
 
 void __attribute__((section(".user1"))) user1() {
+    debug_usr("Begin of user1()");
     while(1) {
         if(*user1_sem1) {
             (*counter_user1)++;
@@ -41,8 +42,10 @@ void __attribute__((section(".user1"))) user1() {
 }
 
 void __attribute__((section(".user2"))) user2() {
+    debug_usr("Begin of user2()");
     while(1) {
         if(*user2_sem2) {
+            /* debug_usr("Inside user2()\n"); */
             sys_counter(counter_user2);
             *user2_sem1 = true;
             *user2_sem2 = false;
@@ -135,6 +138,7 @@ void init_tasks(void) {
     set_gs(usr_data);
 
     current_task = &task_krn;
+    current_task->ebp_krn_stack = (uint32_t*)get_esp();
 }
 
 void tp() {

@@ -4,7 +4,7 @@
 #include <intr.h>
 #include <pagemem.h>
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 typedef union task_descriptor task_t;
 
@@ -37,8 +37,8 @@ typedef union task_descriptor
 {
     struct
     {
-        uint32_t* krn_stack;
-        int_ctx_t* usr_ctx;
+        uint32_t* ebp_krn_stack;
+        uint32_t* esp_krn_stack;
         pde32_t* pgd;
         task_t* next_task;
     };
