@@ -4,7 +4,7 @@
 #include <intr.h>
 #include <pagemem.h>
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 typedef union task_descriptor task_t;
 
