@@ -41,7 +41,9 @@ krn_core_obj :=	\
 perso_core_obj :=		\
 		paging.o		\
 		segmentation.o	\
-		syscall.o
+		syscall.o		\
+		task.o			\
+		utils.o
 
 krn_objects    := $(addprefix $(KRN_CORE),   $(krn_core_obj))
 perso_objects  := $(addprefix $(PERSO_CORE), $(perso_core_obj))

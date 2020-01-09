@@ -5,7 +5,7 @@
 #include <types.h>
 #include <print.h>
 
-#define debug(format, ...) printf(format, ## __VA_ARGS__)
+#define debug(format,...) printf(format, ## __VA_ARGS__)
 void stack_trace(offset_t);
 
 #endif

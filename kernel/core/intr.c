@@ -2,6 +2,8 @@
 #include <intr.h>
 #include <debug.h>
 #include <info.h>
+#include <mapping.h>
+#include <task.h>
 
 extern info_t *info;
 extern void idt_trampoline();
@@ -24,8 +26,9 @@ void intr_init()
    set_idtr(idtr);
 }
 
-void int32_hdlr() {
+void __regparm__(1) irq32_hdlr(int_ctx_t* ctx) {
     asm volatile("int $48"::"S"("int32_hdlr called"));
+    jump_to_next_task(ctx);
 }
 
 void __regparm__(1) int48_hdlr(int_ctx_t *ctx) {
@@ -36,7 +39,11 @@ void __regparm__(1) int48_hdlr(int_ctx_t *ctx) {
 
 void __regparm__(1) int80_hdlr(int_ctx_t* ctx) {
     uint32_t* counter = (uint32_t*) (ctx->gpr.esi.raw);
-    debug("count = %d\n", *counter);
+    if (USR2_COUNT <= (uint32_t)counter && (uint32_t)counter + sizeof(*counter) <= USR2_COUNT + PG_4K_SIZE) {
+        debug("int80_hdlr - count = %d\n", *counter);
+    } else {
+        panic("INT80_hdlr - bad address: counter=%p, *counter=%d\n", counter, *counter);
+    }
 }
 
 void __regparm__(1) intr_hdlr(int_ctx_t *ctx)
@@ -45,7 +52,7 @@ void __regparm__(1) intr_hdlr(int_ctx_t *ctx)
 
     switch(vector) {
         case IRQ32_EXCP:
-            int32_hdlr();
+            irq32_hdlr(ctx);
             break;
 
         case SYS_INT48:

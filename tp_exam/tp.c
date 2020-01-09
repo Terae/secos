@@ -4,40 +4,36 @@
 #include <excp.h>
 #include <info.h>
 #include <mapping.h>
-#include <segmem.h>
-#include <syscall.h>
 #include <paging.h>
+#include <segmem.h>
 #include <segmentation.h>
+#include <syscall.h>
+#include <task.h>
+#include <utils.h>
 
 extern info_t *info;
+
+task_t task_krn;
+task_t task_user1;
+task_t task_user2;
+extern task_t* current_task;
 
 uint32_t* __attribute__((section(".user1_cpt"))) counter_user1 = (uint32_t*)USR1_COUNT;
 uint32_t* __attribute__((section(".user2_cpt"))) counter_user2 = (uint32_t*)USR2_COUNT;
 
 pde32_t* pgd;
 
-#define debug_usr(_msg_) asm volatile("int $48"::"S"((_msg_)))
-
-void user2(void) __attribute__((section(".user2")));
 void __attribute__((section(".user1"))) user1() {
-    debug_usr("Inside user1()");
-    /* while(1) { */
-        (*counter_user1)++;
-
-    uint32_t ustack = USR2_STACK;
-    perso_ring0_to_ring3_ustack(&user2, ustack);
     while(1) {
+        debug_usr("Inside user1()");
+        (*counter_user1)++;
     }
 }
 
 void __attribute__((section(".user2"))) user2() {
-    debug_usr("Inside user2()");
-    /* while(1) { */
-        sys_counter(counter_user2);
-
-    uint32_t ustack = USR1_STACK;
-    perso_ring0_to_ring3_ustack(&user1, ustack);
     while(1) {
+        /* debug_usr("Inside user2()"); */
+        sys_counter(counter_user2);
     }
 }
 
@@ -72,8 +68,8 @@ void init_paging(void) {
     }
 
     // Shared memory
-    pg_set_entry(&ptb_user1 [pt32_idx(USR1_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
-    pg_set_entry(&ptb_user2 [pt32_idx(USR2_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
+    pg_set_entry(&ptb_user1[pt32_idx(USR1_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
+    pg_set_entry(&ptb_user2[pt32_idx(USR2_COUNT)], PG_USR | PG_RW | PG_P, page_nr(SHARED_COUNTER));
 
     // Activation, set_cr3() is done on `pgd_init()`
     activate_cr0();
@@ -84,15 +80,28 @@ void init_paging(void) {
 
 void init_tasks(void) {
     debug("init_tasks()\n");
+    init_krn(&task_krn, pgd, &task_user2);
+    debug("\n### task_krn\n");
+    task_print(&task_krn);
+
+    task_init(&task_user1, (uint32_t) &user1, (uint32_t*) KRN_T1_STACK, (uint32_t*) USR1_STACK, pgd, 1, &task_user2);
+    debug("\n### task_user1\n");
+    task_print(&task_user1);
+
+    task_init(&task_user2, (uint32_t) &user2, (uint32_t*) KRN_T2_STACK, (uint32_t*) USR2_STACK, pgd, 2, &task_user1);
+    debug("\n### task_user2\n");
+    task_print(&task_user2);
+    debug("\n");
 
     set_ds(usr_data);
     set_es(usr_data);
     set_fs(usr_data);
     set_gs(usr_data);
 
-    force_interrupts_on();
-    uint32_t ustack = USR2_STACK;
-    perso_ring0_to_ring3_ustack(&user2, ustack);
+    current_task = &task_krn;
+    current_task->ptb_idx = 1;
+    *counter_user2 = 0;
+    current_task->krn_stack = (uint32_t*) get_esp();
 }
 
 void tp() {
@@ -109,6 +118,9 @@ void tp() {
 
     // Tasks
     init_tasks();
+    debug("#######################\n# Initialization done #\n#######################\n\n");
+    force_interrupts_on();
 
+    while(1);
     debug("End of file - I shouldn't be there\n");
 }

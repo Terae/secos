@@ -25,18 +25,18 @@ void pgd_print(const pde32_t* pgd) {
                 is_linear = (is_linear && pg_present(&ptb[j]) && (ptb[j].addr - prev_addr) == 1);
                 prev_addr = ptb[j].addr;
             }
-            debug("▓ (@=%p)\t0x%x--- -> 0x%x---\t", pg_4K_addr(pgd[i].addr), i << 10, (i << 10) + 1023);
+            debug("▓ (@=%p)\t0x%x... -> 0x%x...\t", pg_4K_addr(pgd[i].addr), i << 10, (i << 10) + 1023);
             if(is_linear) {
                 debug("0x%x -> 0x%x\t░\n", pg_4K_addr(ptb[0].addr), pg_4K_addr(ptb[1023].addr));
             } else {
                 // Printing PTB details
-                debug("\t<not linear>\t░\n");
+                debug("    <not linear>\t░\n");
 
                 uint32_t ptb_prev_addr = ptb[0].addr;
                 int ptb_prev_idx = 0;
                 for(j = 1; j < 1024; ++j) {
                     if((pg_present(&ptb[j]) && ptb[j].addr - ptb_prev_addr != 1) || j == 1023) {
-                        debug("▓\t|pe:\t.0x%x--- -> 0x%x---\t.0x%x -> 0x%x\t░\n", (i << 10) + ptb_prev_idx, (i << 10) + j - 1, pg_4K_addr(ptb[ptb_prev_idx].addr), pg_4K_addr(ptb[j - 1].addr));
+                        debug("▓\t|pe:\t.0x%x... -> 0x%x...\t.0x%x -> 0x%x\t░\n", (i << 10) + ptb_prev_idx, (i << 10) + j - 1, pg_4K_addr(ptb[ptb_prev_idx].addr), pg_4K_addr(ptb[j - 1].addr));
                         ptb_prev_idx = j;
                     }
                         ptb_prev_addr = ptb[j].addr;
