@@ -75,4 +75,11 @@ typedef void (*isr_t)(int_ctx_t*);
 void intr_init();
 void intr_hdlr(int_ctx_t*) __regparm__(1);
 
+// Clock
+void int32_hdlr();
+// Syscall TP5
+void int48_hdlr(int_ctx_t*) __regparm__(1);
+// Syscall print
+void int80_hdlr(int_ctx_t*) __regparm__(1);
+
 #endif

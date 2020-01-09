@@ -42,6 +42,18 @@
 #define RSV_EXCP   15
 
 /*
+** PIC IRQ exceptions
+*/
+// Clock
+#define IRQ32_EXCP  32
+
+/*
+** Available exceptions
+*/
+#define SYS_INT48   48
+#define SYS_INT80   80
+
+/*
 ** Contributory exceptions
 */
 #define contributory_exception(_e_)                             \
