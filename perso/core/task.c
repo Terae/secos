@@ -52,7 +52,7 @@ void jump_to_next_task(int_ctx_t* ctx) {
             debug("' from eip=%p =-\n", prev_eip);
 
             debug("\n### Previous task:\n");
-            task_print(current_task);
+            print_task(current_task);
         }
     }
 
@@ -61,7 +61,7 @@ void jump_to_next_task(int_ctx_t* ctx) {
     if(VERBOSE) {
         pgd_print(current_task->pgd);
         debug("### Next task:\n");
-        task_print(current_task);
+        print_task(current_task);
     }
 
     set_cr3(current_task->pgd);
@@ -100,9 +100,10 @@ void task_init(task_t* task, uint32_t eip, uint32_t* stack_kernel, uint32_t* sta
     task->next_task                     = next;
 }
 
-void task_print(const task_t* task) {
-    debug("krn_stack = %p\n"
-          "usr_ctx   = %p\n"
+void print_task(const task_t* task) {
+    const int_ctx_t* ctx = (int_ctx_t*)task->usr_ctx;
+    debug("ebp_krn_stack = %p\n"
+          "esp_krn_stack = %p\n"
           "   -> eip = %p\n"
           "   -> cs  = %p\n"
           "   -> efl = %p\n"
@@ -110,11 +111,11 @@ void task_print(const task_t* task) {
           "   -> ss  = %p\n"
           "next_task = %p\n",
           task->krn_stack,
-          task->usr_ctx,
-          task->usr_ctx->eip.raw,
-          task->usr_ctx->cs.raw,
-          task->usr_ctx->eflags.raw,
-          task->usr_ctx->esp.raw,
-          task->usr_ctx->ss.raw,
+          ctx,
+          ctx->eip.raw,
+          ctx->cs.raw,
+          ctx->eflags.raw,
+          ctx->esp.raw,
+          ctx->ss.raw,
           task->next_task);
 }

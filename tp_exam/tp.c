@@ -51,7 +51,7 @@ void __attribute__((section(".user2"))) user2() {
 }
 
 void init_excp_handlers(void) {
-    debug("\n# Initialization of exceptions handlers\n");
+    debug_cyan("\n# Initialization of exceptions handlers\n");
     // Handlers called from ASM code
     // See `kernel.core.idt.s`, `kernel/core/excp.c`
     idt_reg_t idtr;
@@ -65,7 +65,7 @@ void init_excp_handlers(void) {
 }
 
 void init_paging(void) {
-    debug("\n# Initialization of paging\n");
+    debug_cyan("\n# Initialization of paging\n");
 
     // PGD
     pgd_kernel = pgd_init(PGD_KERNEL);
@@ -112,16 +112,16 @@ void init_paging(void) {
     // Activation, set_cr3() is done on `pgd_init()`
     activate_cr0();
 
-    debug("== KERNEL ==");
+    debug_blue("== KERNEL ==");
     pgd_print(pgd_kernel);
-    debug("== USER 1 ==");
+    debug_blue("== USER 1 ==");
     pgd_print(pgd_user1);
-    debug("== USER 2 ==");
+    debug_blue("== USER 2 ==");
     pgd_print(pgd_user2);
 }
 
 void init_tasks(void) {
-    debug("# Initialization of tasks\n");
+    debug_cyan("# Initialization of tasks\n");
     init_krn(&task_krn, pgd_kernel, &task_user2);
     debug("-> ........: task_krn,   first process\n");
     task_init(&task_user1, (uint32_t) &user1, (uint32_t*) KRN_T1_STACK, (uint32_t*) USR1_STACK, pgd_user1,  &task_user2);
@@ -138,6 +138,8 @@ void init_tasks(void) {
 }
 
 void tp() {
+    print_secos();
+
     // Exceptions
     init_excp_handlers();
 
@@ -157,7 +159,10 @@ void tp() {
     *user2_sem1 = false;
     *user2_sem2 = true;
 
-    debug("\n################################\n# Let's turn interruptions on! #\n################################\n\n");
+    debug("\n################################\n# ");
+    debug_green("Let's turn interruptions on!");
+    debug(" #\n################################\n\n");
+
     force_interrupts_on();
 
     while(1);

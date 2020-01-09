@@ -82,4 +82,6 @@ void int48_hdlr(int_ctx_t*) __regparm__(1);
 // Syscall print
 void int80_hdlr(int_ctx_t*) __regparm__(1);
 
+void print_int_ctx_t(const int_ctx_t*, const char* msg);
+
 #endif

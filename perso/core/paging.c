@@ -12,7 +12,9 @@ pde32_t* pgd_init(uint32_t addr) {
 
 void pgd_print(const pde32_t* pgd) {
     int i, j;
-    debug("\n▓▓▓▓ G D T ▓▓▓▓▒▒▒ (@='%p') ▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░\n"
+    debug("\n▓▓▓▓ ");
+    debug_magenta(S_BOLD "G D T");
+    debug(" ▓▓▓▓▒▒▒ (@='%p') ▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░\n"
           "▓  -- @ PTB --\t-- Physical address --\t-- Virtual address --\t░\n", pgd);
     for(i = 0; i < 1024; ++i) {
         if(pg_present(&pgd[i])) {
@@ -27,10 +29,14 @@ void pgd_print(const pde32_t* pgd) {
             }
             debug("▓ (@=%p)\t0x%x... -> 0x%x...\t", pg_4K_addr(pgd[i].addr), i << 10, (i << 10) + 1023);
             if(is_linear) {
-                debug("0x%x -> 0x%x\t░\n", pg_4K_addr(ptb[0].addr), pg_4K_addr(ptb[1023].addr));
+                debug("0x%x -> 0x%x", pg_4K_addr(ptb[0].addr), pg_4K_addr(ptb[1023].addr));
+                if(ptb[0].addr == 0) {
+                    debug("\t");
+                }
+                debug("\t░\n");
             } else {
                 // Printing PTB details
-                debug("    <not linear>\t░\n");
+                debug(S_ITALIC "    <not linear>" S_RST "\t░\n");
 
                 uint32_t ptb_prev_addr = ptb[0].addr;
                 int ptb_prev_idx = 0;
