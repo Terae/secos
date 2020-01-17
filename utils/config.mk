@@ -41,6 +41,7 @@ krn_core_obj :=	\
 perso_core_obj :=		\
 		paging.o		\
 		segmentation.o	\
+		switch_stack.o	\
 		syscall.o		\
 		task.o			\
 		utils.o

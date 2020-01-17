@@ -13,32 +13,28 @@ extern info_t* info;
 extern tss_t TSS;
 task_t* current_task;
 
+extern void __regparm__(2) switch_stack();
+
 uint8_t check_interrupted_task(uint32_t eip);
 
 void jump_to_next_task(int_ctx_t* int_ctx) {
-    int_ctx_t* ctx = (int_ctx_t*)&current_task->esp_krn_stack;
-    uint8_t prev = check_interrupted_task(int_ctx->eip.raw);
-    uint32_t* prev_krn_esp = (uint32_t*)int_ctx->gpr.esp.raw;
-    uint32_t* prev_usr_esp = (uint32_t*)int_ctx->esp.raw;
+    /*uint8_t interrupted_task = */check_interrupted_task(int_ctx->eip.raw);
+    uint32_t* interrupted_krn_esp = (uint32_t*)get_esp(); // current_task->esp_krn_stack;
 
     if(VERBOSE) {
+        uint32_t* interrupted_usr_esp = (uint32_t*)int_ctx->esp.raw;
         print_int_ctx_t(int_ctx, "Incoming int_ctx");
 
         debug("\n### Previous task:\n");
         print_task(current_task);
         print_stack((uint32_t)&current_task->ebp_krn_stack, (uint32_t)&current_task->esp_krn_stack);
 
-        debug("\n\n\nctx = %p\n", ctx);
-        debug("prev_krn_esp = %p\n", prev_krn_esp);
-        debug("prev_usr_esp = %p\n", prev_usr_esp);
+        debug("interrupted_krn_esp = %p\n", interrupted_krn_esp);
+        debug("interrupted_usr_esp = %p\n", interrupted_usr_esp);
         debug("current_task->esp = %p\n", current_task->esp_krn_stack);
     }
 
     current_task = current_task->next_task;
-    if(prev == 1 || prev == 2) {
-        /* current_task->esp_krn_stack = prev_krn_esp; */
-    }
-
     uint32_t* next_krn_esp = current_task->esp_krn_stack;
 
     if(VERBOSE) {
@@ -48,7 +44,7 @@ void jump_to_next_task(int_ctx_t* int_ctx) {
         debug("### Next task:\n");
         print_task(current_task);
 
-        ctx = (int_ctx_t*)current_task->esp_krn_stack;
+        int_ctx_t* ctx = (int_ctx_t*)current_task->esp_krn_stack;
 
         print_int_ctx_t(ctx, "Stack reconstruction");
         debug("\n### Print stack\n");
@@ -60,21 +56,7 @@ void jump_to_next_task(int_ctx_t* int_ctx) {
     set_cr3(current_task->pgd);
     TSS.s0.esp = (uint32_t)next_krn_esp;
 
-    asm volatile(
-            "pushl %%ebp;"
-            "movl %%esp, (%[prev_esp]);"
-            "movl %[next_esp], %%esp;"
-            /* "mov %[next_ebp], %%ebp;" */
-            "popl %%ebp;"
-            /* "push %[next_eip];" */
-            "ret;"
-            ::
-            [prev_esp] "a" (prev_krn_esp),
-            [next_esp] "b" (next_krn_esp)/*,
-            [next_eip] "r" (next_eip),
-            [next_ebp] "r" (current_task->ebp_krn_stack)*/);
-
-    debug("%p\n", int_ctx->eip.raw);
+    switch_stack(interrupted_krn_esp, next_krn_esp);
 }
 
 void task_init(task_t* task, uint32_t eip, uint32_t* stack_kernel, uint32_t* stack_user, pde32_t* pgd, task_t* next) {
